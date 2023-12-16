@@ -34,6 +34,7 @@ type Game = {
     files: GameFile list
     children: Permutation list
     }
+open System
 type Model = {
     games: Map<string, Game>
     }
@@ -101,10 +102,10 @@ let view (model: Model) dispatch : IView =
                                             TextBlock.text (file.Name)
                                             ]
                                         if not det.approved then
-                                            let name = file.Name
+                                            let name = file.Name + "_" + System.Guid.NewGuid().ToString()
                                             Button.create [
-                                                Button.content $"Approve {name}"
-                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}")
+                                                Button.content $"Approve {game.name}/{name}"
+                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch ())
                                                 ]
                                         ]
                                     ]
