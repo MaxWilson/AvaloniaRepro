@@ -7,6 +7,15 @@
 
   <ItemGroup>
     <Compile Include="Program.fs" />
+    <AvaloniaResource Include="**\*.xaml" />
+    <None Include="UI\Styles.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.6" />
+    <PackageReference Include="Avalonia.FuncUI" Version="1.1.0" />
+    <PackageReference Include="Avalonia.FuncUI.Elmish" Version="1.1.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
   </ItemGroup>
 
 </Project>
