@@ -37,22 +37,43 @@ type Game = {
 type Model = {
     games: Map<string, Game>
     }
-let init _ = {
-    games = [
-        "foo", {
-            name = "foo"
-            files = [
-                { frozenPath = "agartha.trn"; detail = Trn }
-                { frozenPath = "niefelheim.trn"; detail = Trn }
-                { frozenPath = "ftherlnd"; detail = Trn }
-                { frozenPath = "niefelheim"; detail = Orders { index = 1; approved = false; nation = "niefelheim"; name = None } }
-                { frozenPath = "agartha"; detail = Orders { index = 1; approved = false; nation = "agartha"; name = None } }
-            ]
-            children = []
-        }
-    ] |> Map.ofList
-    }
-let update msg model = model
+let init _ =
+    {
+        games = [
+            "bar", {
+                name = "bar"
+                files = [
+                    { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\ftherlnd"; detail = Other };
+                    { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\early_niefelheim.trn"; detail = Trn };
+                    { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\early_agartha.trn"; detail = Trn };
+                    { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\early_niefelheim.2h"
+                      detail = Orders { index = 1
+                                        approved = false
+                                        nation = "early_niefelheim"
+                                        name = None } };
+                    { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\early_agartha.2h"
+                      detail = Orders { index = 1
+                                        approved = false
+                                        nation = "early_agartha"
+                                        name = None } }
+                    ]
+                children = []
+            }
+            "foo", {
+                name = "foo"
+                files = [
+                    { frozenPath = "agartha.trn"; detail = Trn }
+                    { frozenPath = "niefelheim.trn"; detail = Trn }
+                    { frozenPath = "ftherlnd"; detail = Trn }
+                    { frozenPath = "niefelheim"; detail = Orders { index = 1; approved = false; nation = "niefelheim"; name = None } }
+                    { frozenPath = "agartha"; detail = Orders { index = 1; approved = false; nation = "agartha"; name = None } }
+                ]
+                children = []
+            }
+        ] |> Map.ofList
+        },
+        Elmish.Cmd.Empty
+let update msg model = model, Elmish.Cmd.Empty
 
 let view (model: Model) dispatch : IView =
     StackPanel.create [
@@ -83,7 +104,7 @@ let view (model: Model) dispatch : IView =
                                             let name = file.Name
                                             Button.create [
                                                 Button.content $"Approve {name}"
-                                                Button.onClick(fun _ -> printfn $"Approve {name}")
+                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}")
                                                 ]
                                         ]
                                     ]
@@ -110,7 +131,7 @@ type MainWindow() as this =
     do
         base.Title <- "Mandrake for Dom5"
 
-        Elmish.Program.mkSimple init update view
+        Elmish.Program.mkProgram init update view
         |> Program.withHost this
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
