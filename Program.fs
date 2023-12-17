@@ -61,7 +61,7 @@ let update msg model =
         printfn "Update NewGame: %A" msg
         { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
     | Refresh ->
-        let game = "bob"
+        let game = "Bob"
         { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
     | Approve(gameName, ordersName) ->
         let game = {
@@ -110,7 +110,7 @@ let init _ =
                 }
             ] |> Map.ofList
         }
-    model |> update (NewGame "Benris")
+    model, Cmd.Empty
 
 let button game (file: GameFile) det dispatch =
     let name = file.Name + "_" + System.Guid.NewGuid().ToString()
@@ -126,16 +126,16 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
-            for game in model.games.Values do
+            for gameName in model.games.Keys do
                 StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
                     StackPanel.children [
                         TextBlock.create [
                             TextBlock.classes ["subtitle"]
-                            TextBlock.text (game.name)
+                            TextBlock.text gameName
                             // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
                             ]
-                        for file in game.files do
+                        for file in model.games[gameName].files do
                             match file.detail with
                             | Orders det ->
                                 StackPanel.create [
@@ -146,7 +146,7 @@ let view (model: Model) dispatch : IView =
                                             ]
                                         //if not det.approved then
                                         let name = file.Name + "_" + System.Guid.NewGuid().ToString()
-                                        button game file det dispatch
+                                        button (model.games[gameName]) file det dispatch
                                         ]
                                     ]
                             | _ -> ()
@@ -165,8 +165,8 @@ type MainWindow() as this =
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
                 [[], fun dispatch ->
-                        dispatch Refresh
-                        // dispatch (NewGame "Fenris") // this somehow is a key step in the repro
+                        // dispatch Refresh
+                        dispatch (NewGame "Fenris") // this somehow is a key step in the repro
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
