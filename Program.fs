@@ -38,6 +38,11 @@ open System
 type Model = {
     games: Map<string, Game>
     }
+type FileSystemMsg =
+| NewGame of gameName:string
+| Refresh
+| NewFile of gameName: string * FullPath
+
 let init _ =
     {
         games = [
@@ -74,7 +79,13 @@ let init _ =
         ] |> Map.ofList
         },
         Elmish.Cmd.Empty
-let update msg model = model, Elmish.Cmd.Empty
+let update msg model =
+    match msg with
+    | NewGame(game) ->
+        printfn "Update: %A" msg
+        { model with games = Map.change game (Option.orElse (Some { name = game; files = []; children = [] })) model.games }, Elmish.Cmd.Empty
+    | Refresh ->
+        model, Elmish.Cmd.Empty
 
 let view (model: Model) dispatch : IView =
     StackPanel.create [
@@ -105,7 +116,7 @@ let view (model: Model) dispatch : IView =
                                             let name = file.Name + "_" + System.Guid.NewGuid().ToString()
                                             Button.create [
                                                 Button.content $"Approve {game.name}/{name}"
-                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch ())
+                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch Refresh)
                                                 ]
                                         ]
                                     ]
@@ -136,6 +147,11 @@ type MainWindow() as this =
         |> Program.withHost this
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
+                [[], fun dispatch ->
+                        dispatch (NewGame "foo")
+                        dispatch (NewGame "bar")
+                        { new System.IDisposable with member this.Dispose() = () }
+                    ]
                 // match model.acceptance.gameTurns, model.fileSettings with
                 // | Some turns, { exePath = Some exePath; dataDirectory = Some dataDirectory } ->
                 //     // we want to resubscribe if either the settings change or a new game gets created
