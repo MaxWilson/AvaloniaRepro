@@ -41,7 +41,6 @@ type Model = {
 type FileSystemMsg =
 | NewGame of gameName:string
 | Refresh
-| NewFile of gameName: string * FullPath
 
 let init _ =
     {
@@ -148,8 +147,7 @@ type MainWindow() as this =
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
                 [[], fun dispatch ->
-                        dispatch (NewGame "foo")
-                        dispatch (NewGame "bar")
+                        ["foo"; "Fenris"; "Mag_Maedhan"; "Stoneface_Kal"] |> List.iter (dispatch << NewGame)
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
