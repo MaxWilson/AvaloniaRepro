@@ -55,8 +55,28 @@ type FileSystemMsg =
 | Approve of string * string
 | Refresh
 
+let update msg model =
+    match msg with
+    | NewGame(game) ->
+        printfn "Update NewGame: %A" msg
+        { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
+    | Refresh ->
+        let game = "bob"
+        { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
+    | Approve(gameName, ordersName) ->
+        let game = {
+            model.games[gameName]
+            with
+                files =
+                    model.games[gameName].files
+                    |> List.map (function
+                        | { detail = Orders det } as f when f.Name = ordersName -> { f with detail = Orders { det with approved = true } }
+                        | otherwise -> otherwise
+                    )
+            }
+        { model with games = Map.add gameName game model.games }, Elmish.Cmd.Empty
 let init _ =
-    {
+    let model = {
         games = [
             "bar", {
                 name = "bar"
@@ -76,7 +96,7 @@ let init _ =
                                         name = None } }
                     ]
                 children = []
-            }
+                }
             "foo", {
                 name = "foo"
                 files = [
@@ -85,31 +105,12 @@ let init _ =
                     { frozenPath = "ftherlnd"; detail = Trn }
                     { frozenPath = "niefelheim"; detail = Orders { index = 1; approved = false; nation = "niefelheim"; name = None } }
                     { frozenPath = "agartha"; detail = Orders { index = 1; approved = false; nation = "agartha"; name = None } }
-                ]
+                    ]
                 children = []
-            }
-        ] |> Map.ofList
-        },
-        Elmish.Cmd.Empty
-let update msg model =
-    match msg with
-    | NewGame(game) ->
-        printfn "Update: %A" msg
-        { model with games = Map.change game (Option.orElse (Some { name = game; files = []; children = [] })) model.games }, Elmish.Cmd.Empty
-    | Refresh ->
-        model, Elmish.Cmd.Empty
-    | Approve(gameName, ordersName) ->
-        let game = {
-            model.games[gameName]
-            with
-                files =
-                    model.games[gameName].files
-                    |> List.map (function
-                        | { detail = Orders det } as f when f.Name = ordersName -> { f with detail = Orders { det with approved = true } }
-                        | otherwise -> otherwise
-                    )
-            }
-        { model with games = Map.add gameName game model.games }, Elmish.Cmd.Empty
+                }
+            ] |> Map.ofList
+        }
+    model |> update (NewGame "Benris")
 
 let button game (file: GameFile) det dispatch =
     let name = file.Name + "_" + System.Guid.NewGuid().ToString()
@@ -125,7 +126,7 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
-            for game in model.games.Values |> Seq.filter (fun g -> g.files.Length > 0) do
+            for game in model.games.Values do
                 StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
                     StackPanel.children [
@@ -164,7 +165,8 @@ type MainWindow() as this =
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
                 [[], fun dispatch ->
-                        ["Fenris"] |> List.iter (dispatch << NewGame) // this somehow is a key step in the repro
+                        dispatch Refresh
+                        // dispatch (NewGame "Fenris") // this somehow is a key step in the repro
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
