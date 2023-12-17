@@ -129,35 +129,27 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
-            StackPanel.create [
-                StackPanel.orientation Orientation.Vertical
-                StackPanel.children []]
             for game in model.games do
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Vertical
-                    StackPanel.children [
-                        // TextBlock.create [
-                        //     TextBlock.classes ["subtitle"]
-                        //     TextBlock.text gameName
-                        //     // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
-                        //     ]
-                        for file in game.files do
-                            match file.detail with
-                            | Orders det ->
-                                StackPanel.create [
-                                    StackPanel.orientation Orientation.Horizontal
-                                    StackPanel.children [
-                                        TextBlock.create [
-                                            TextBlock.text (file.Name)
-                                            ]
-                                        //if not det.approved then
-                                        let name = file.Name + "_" + System.Guid.NewGuid().ToString()
-                                        button game file det dispatch
-                                        ]
-                                    ]
-                            | _ -> ()
-                            ]
+                TextBlock.create [
+                    TextBlock.classes ["subtitle"]
+                    TextBlock.text game.name
+                    // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
                     ]
+                for file in game.files do
+                    match file.detail with
+                    | Orders det ->
+                        StackPanel.create [
+                            StackPanel.orientation Orientation.Horizontal
+                            StackPanel.children [
+                                TextBlock.create [
+                                    TextBlock.text (file.Name)
+                                    ]
+                                //if not det.approved then
+                                let name = file.Name + "_" + System.Guid.NewGuid().ToString()
+                                button game file det dispatch
+                                ]
+                            ]
+                    | _ -> ()
             ]
         ]
 
