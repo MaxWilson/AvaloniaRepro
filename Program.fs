@@ -40,6 +40,7 @@ type Model = {
     }
 type FileSystemMsg =
 | NewGame of gameName:string
+| Approve of string * string
 | Refresh
 
 let init _ =
@@ -85,6 +86,18 @@ let update msg model =
         { model with games = Map.change game (Option.orElse (Some { name = game; files = []; children = [] })) model.games }, Elmish.Cmd.Empty
     | Refresh ->
         model, Elmish.Cmd.Empty
+    | Approve(gameName, ordersName) ->
+        let game = {
+            model.games[gameName]
+            with
+                files =
+                    model.games[gameName].files
+                    |> List.map (function
+                        | { detail = Orders det } as f when f.Name = ordersName -> { f with detail = Orders { det with approved = true } }
+                        | otherwise -> otherwise
+                    )
+            }
+        { model with games = Map.add gameName game model.games }, Elmish.Cmd.Empty
 
 let view (model: Model) dispatch : IView =
     StackPanel.create [
@@ -115,7 +128,7 @@ let view (model: Model) dispatch : IView =
                                             let name = file.Name + "_" + System.Guid.NewGuid().ToString()
                                             Button.create [
                                                 Button.content $"Approve {game.name}/{name}"
-                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch Refresh)
+                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch (Approve(game.name, file.Name)))
                                                 ]
                                         ]
                                     ]
@@ -147,7 +160,7 @@ type MainWindow() as this =
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
                 [[], fun dispatch ->
-                        ["foo"; "Fenris"; "Mag_Maedhan"; "Stoneface_Kal"] |> List.iter (dispatch << NewGame)
+                        ["foo"; "Fenris"; "Mag_Maedhan"; "Stoneface_Kal"] |> List.iter (dispatch << NewGame) // this somehow is a key step in the repro
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
