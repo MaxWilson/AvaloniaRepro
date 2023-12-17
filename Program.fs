@@ -59,9 +59,11 @@ let update msg model =
     match msg with
     | NewGame(game) ->
         printfn "Update NewGame: %A" msg
-        { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
+        let gameName = game//.ToLowerInvariant()
+        { model with games = model.games |> Map.add gameName { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
     | Refresh -> model, Cmd.Empty
     | Approve(gameName, ordersName) ->
+        let gameName = gameName// .ToLowerInvariant()
         let game = {
             model.games[gameName]
             with
@@ -72,7 +74,7 @@ let update msg model =
                         | otherwise -> otherwise
                     )
             }
-        { model with games = Map.add gameName game model.games }, Elmish.Cmd.Empty
+        { model with games = model.games |> Map.add gameName game }, Elmish.Cmd.Empty
 let init _ =
     let model = {
         games = [
