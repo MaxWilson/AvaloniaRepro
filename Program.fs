@@ -4,6 +4,18 @@ open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia
+open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.Themes.Fluent
+open Avalonia.FuncUI.Hosts
+open Avalonia.Controls
+open Avalonia.FuncUI
+open Avalonia.FuncUI.DSL
+open Avalonia.Layout
+open Avalonia.FuncUI.Types
+open Avalonia.FuncUI.Elmish
+open System.Threading.Tasks
+open global.Elmish
 open System.IO
 
 type FullPath = string
@@ -99,6 +111,13 @@ let update msg model =
             }
         { model with games = Map.add gameName game model.games }, Elmish.Cmd.Empty
 
+let button game (file: GameFile) det dispatch =
+    let name = file.Name + "_" + System.Guid.NewGuid().ToString()
+    let txt = if det.approved then "Unapprove" else $"Approve {game.name}/{name}"
+    Button.create [
+        Button.content txt
+        Button.onClick (fun _ -> printfn $"Approve {game.name}/{name}/{file.Name}"; dispatch (Approve(game.name, file.Name)))
+        ]
 let view (model: Model) dispatch : IView =
     StackPanel.create [
         StackPanel.children [
@@ -124,12 +143,9 @@ let view (model: Model) dispatch : IView =
                                         TextBlock.create [
                                             TextBlock.text (file.Name)
                                             ]
-                                        if not det.approved then
-                                            let name = file.Name + "_" + System.Guid.NewGuid().ToString()
-                                            Button.create [
-                                                Button.content $"Approve {game.name}/{name}"
-                                                Button.onClick(fun _ -> printfn $"Approve {game.name}/{name}"; dispatch (Approve(game.name, file.Name)))
-                                                ]
+                                        //if not det.approved then
+                                        let name = file.Name + "_" + System.Guid.NewGuid().ToString()
+                                        button game file det dispatch
                                         ]
                                     ]
                             | _ -> ()
@@ -137,18 +153,6 @@ let view (model: Model) dispatch : IView =
                     ]
             ]
         ]
-open Avalonia
-open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.Themes.Fluent
-open Avalonia.FuncUI.Hosts
-open Avalonia.Controls
-open Avalonia.FuncUI
-open Avalonia.FuncUI.DSL
-open Avalonia.Layout
-open Avalonia.FuncUI.Types
-open Avalonia.FuncUI.Elmish
-open System.Threading.Tasks
-open global.Elmish
 
 type MainWindow() as this =
     inherit HostWindow()
