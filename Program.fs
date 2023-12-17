@@ -60,7 +60,7 @@ let update msg model =
     | NewGame(game) ->
         printfn "Update NewGame: %A" msg
         let gameName = game//.ToLowerInvariant()
-        { model with games = model.games |> Map.add gameName { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
+        { model with games = model.games |> Map.add gameName { name = game.ToLowerInvariant(); files = []; children = [] } }, Elmish.Cmd.Empty
     | Refresh -> model, Cmd.Empty
     | Approve(gameName, ordersName) ->
         let gameName = gameName// .ToLowerInvariant()
