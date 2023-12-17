@@ -48,7 +48,7 @@ type Game = {
     }
 open System
 type Model = {
-    games: Map<string, Game>
+    games: Game list
     }
 type FileSystemMsg =
 | NewGame of gameName:string
@@ -60,25 +60,28 @@ let update msg model =
     | NewGame(game) ->
         printfn "Update NewGame: %A" msg
         let gameName = game//.ToLowerInvariant()
-        { model with games = model.games |> Map.add gameName { name = game.ToLowerInvariant(); files = []; children = [] } }, Elmish.Cmd.Empty
+        { model with games = { name = game.ToLowerInvariant(); files = []; children = [] }::model.games }, Elmish.Cmd.Empty
     | Refresh -> model, Cmd.Empty
     | Approve(gameName, ordersName) ->
         let gameName = gameName// .ToLowerInvariant()
-        let game = {
-            model.games[gameName]
-            with
-                files =
-                    model.games[gameName].files
-                    |> List.map (function
-                        | { detail = Orders det } as f when f.Name = ordersName -> { f with detail = Orders { det with approved = true } }
-                        | otherwise -> otherwise
-                    )
+        let game = (model.games |> List.find (fun g -> g.name = gameName))
+        let transform game =
+            if game.name <> gameName then game
+            else
+            {   game
+                with
+                    files =
+                        game.files
+                        |> List.map (function
+                            | { detail = Orders det } as f when f.Name = ordersName -> { f with detail = Orders { det with approved = true } }
+                            | otherwise -> otherwise
+                        )
             }
-        { model with games = model.games |> Map.add gameName game }, Elmish.Cmd.Empty
+        { model with games = model.games |> List.map transform }, Elmish.Cmd.Empty
 let init _ =
     let model = {
         games = [
-            "bar", {
+            {
                 name = "bar"
                 files = [
                     { frozenPath = @"C:\Users\wilso\AppData\Local\Temp\Fenris\ftherlnd"; detail = Other };
@@ -97,7 +100,7 @@ let init _ =
                     ]
                 children = []
                 }
-            "foo", {
+            {
                 name = "foo"
                 files = [
                     { frozenPath = "agartha.trn"; detail = Trn }
@@ -108,7 +111,7 @@ let init _ =
                     ]
                 children = []
                 }
-            ] |> Map.ofList
+            ]
         }
     model, Cmd.Empty
 
@@ -129,7 +132,7 @@ let view (model: Model) dispatch : IView =
             StackPanel.create [
                 StackPanel.orientation Orientation.Vertical
                 StackPanel.children []]
-            for gameName in model.games.Keys do
+            for game in model.games do
                 StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
                     StackPanel.children [
@@ -138,7 +141,7 @@ let view (model: Model) dispatch : IView =
                         //     TextBlock.text gameName
                         //     // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
                         //     ]
-                        for file in model.games[gameName].files do
+                        for file in game.files do
                             match file.detail with
                             | Orders det ->
                                 StackPanel.create [
@@ -149,7 +152,7 @@ let view (model: Model) dispatch : IView =
                                             ]
                                         //if not det.approved then
                                         let name = file.Name + "_" + System.Guid.NewGuid().ToString()
-                                        button (model.games[gameName]) file det dispatch
+                                        button game file det dispatch
                                         ]
                                     ]
                             | _ -> ()
