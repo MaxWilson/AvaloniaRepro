@@ -64,7 +64,6 @@ let update msg model =
     | Refresh -> model, Cmd.Empty
     | Approve(gameName, ordersName) ->
         let gameName = gameName// .ToLowerInvariant()
-        let game = (model.games |> List.find (fun g -> g.name = gameName))
         let transform game =
             if game.name <> gameName then game
             else
@@ -122,6 +121,9 @@ let button game (file: GameFile) det dispatch =
         Button.content txt
         Button.onClick (fun _ -> printfn $"Approve {game.name}/{name}/{file.Name}"; dispatch (Approve(game.name, file.Name)))
         ]
+
+let r = System.Random()
+let randomGames() = (init() |> fst).games |> List.map (fun g -> { g with name = "game" + r.Next().ToString() })
 let view (model: Model) dispatch : IView =
     StackPanel.create [
         StackPanel.children [
@@ -129,7 +131,8 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
-            for game in model.games do
+            for game in randomGames() do
+                printfn $"game: {game.name}"
                 TextBlock.create [
                     TextBlock.classes ["subtitle"]
                     TextBlock.text game.name
@@ -164,7 +167,7 @@ type MainWindow() as this =
             Elmish.Sub.batch [
                 [[], fun dispatch ->
                         // dispatch Refresh
-                        dispatch (NewGame "Fenris") // this somehow is a key step in the repro
+                        dispatch (NewGame "fenris") // this somehow is a key step in the repro
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
