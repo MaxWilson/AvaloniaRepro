@@ -60,9 +60,7 @@ let update msg model =
     | NewGame(game) ->
         printfn "Update NewGame: %A" msg
         { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
-    | Refresh ->
-        let game = "Bob"
-        { model with games = model.games |> Map.add game { name = game; files = []; children = [] } }, Elmish.Cmd.Empty
+    | Refresh -> model, Cmd.Empty
     | Approve(gameName, ordersName) ->
         let game = {
             model.games[gameName]
@@ -126,15 +124,18 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
+            StackPanel.create [
+                StackPanel.orientation Orientation.Vertical
+                StackPanel.children []]
             for gameName in model.games.Keys do
                 StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
                     StackPanel.children [
-                        TextBlock.create [
-                            TextBlock.classes ["subtitle"]
-                            TextBlock.text gameName
-                            // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
-                            ]
+                        // TextBlock.create [
+                        //     TextBlock.classes ["subtitle"]
+                        //     TextBlock.text gameName
+                        //     // TextBox.onTextChanged (fun txt -> exePath.Set (Some txt); exePathValid.Set ((String.IsNullOrWhiteSpace txt |> not) && File.Exists txt))
+                        //     ]
                         for file in model.games[gameName].files do
                             match file.detail with
                             | Orders det ->
