@@ -164,7 +164,7 @@ type MainWindow() as this =
         |> Elmish.Program.withSubscription (fun model ->
             Elmish.Sub.batch [
                 [[], fun dispatch ->
-                        ["foo"; "Fenris"; "Mag_Maedhan"; "Stoneface_Kal"] |> List.iter (dispatch << NewGame) // this somehow is a key step in the repro
+                        ["Fenris"] |> List.iter (dispatch << NewGame) // this somehow is a key step in the repro
                         { new System.IDisposable with member this.Dispose() = () }
                     ]
                 // match model.acceptance.gameTurns, model.fileSettings with
