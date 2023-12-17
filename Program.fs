@@ -125,7 +125,7 @@ let view (model: Model) dispatch : IView =
                 TextBlock.classes ["title"]
                 TextBlock.text $"Games"
                 ]
-            for game in model.games.Values do
+            for game in model.games.Values |> Seq.filter (fun g -> g.files.Length > 0) do
                 StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
                     StackPanel.children [
